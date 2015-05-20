@@ -1,0 +1,16 @@
+<ion-view view-title="Restaurants">
+  <ion-content>
+    <ion-list> 
+      <ion-item class="item-avatar item-icon-right item-label-right" ng-repeat="restaurant in restaurants" type="item-text-wrap" href="#/tab/restaurants/{{restaurant.place_id}}">
+        <img ng-src="{{restaurant.icon}}">
+        <h2>{{restaurant.name}}</h2>
+        <p ng-bind="distance[$index]"> </p> 
+        <i class="icon ion-chevron-right icon-accessory"></i>
+        <ion-option-button class="button-positive" ng-click="choose(restaurant)">
+          Choose
+        </ion-option-button>
+      </ion-item>
+    </ion-list>
+    <div id="map" style="width:0px;height:0px;"></div>
+  </ion-content>
+</ion-view>

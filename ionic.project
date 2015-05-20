@@ -1,0 +1,10 @@
+{
+  "name": "Slalom Restaurant Chooser",
+  "app_id": "b7d75280",
+  "proxies": [
+    {
+      "path": "/login",
+      "proxyUrl": "https://outlook.office365.com/EWS/Exchange.asmx"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+<ion-view view-title="{{restaurant.name}}">
+  <ion-content class="padding">
+  <div align="center">
+    <img ng-src="{{restaurant.icon}}" align="middle" style="width: 64px; height: 64px">
+    <p> <b> {{restaurant.name}} </p> </b>
+    <p> {{restaurant.formatted_address}} </p>
+    <p> <a href="tel:{{restaurant.international_phone_number}}">{{restaurant.international_phone_number}}</a> </p>
+  </div>
+  
+  <div class="card">
+      <div class="item item-text-wrap">
+          <div class="button-bar">
+              <a class="button" ng-click="openModal()">View Pictures</a>
+          </div>
+      </div>
+  </div>
+
+  <script id="image-modal.html" type="text/ng-template">
+      <div class="modal image-modal transparent" ng-click="closeModal()">
+        <ion-slide-box on-slide-changed="slideChanged(index)" show-pager="false">
+          <ion-slide ng-repeat="photo in photos">
+            <img ng-src="{{photo.src}}" class="fullscreen-image" />
+            <p class="info">{{photo.msg}}</p>
+          </ion-slide>
+        </ion-slide-box>
+      </div>
+  </script>
+  
+  </ion-content>
+</ion-view>
