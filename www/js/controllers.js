@@ -7,8 +7,11 @@ angular.module('starter.controllers', [])
         for(i=0;i<data.length;i++) {
           likes = data[i].likes.split(",");
           favorites.push({name: data[i].name, likes: likes, photo: data[i].photo});
+          if(data[i].currentUser == true)
+            $scope.currentUser = data[i].name;
         }
         $scope.favorites = favorites;
+        console.log("Current User is: " + $scope.currentUser);
     });
 
     $scope.doRefresh = function() {
@@ -17,21 +20,25 @@ angular.module('starter.controllers', [])
         for(i=0;i<data.length;i++) {
           likes = data[i].likes.split(",");
           favorites.push({name: data[i].name, likes: likes, photo: data[i].photo});
+          if(data[i].currentUser == true)
+            $scope.currentUser = data[i].name;
         }
         $scope.favorites = favorites;
+        console.log("Current User is: " + $scope.currentUser);
       });
       $scope.$broadcast('scroll.refreshComplete');
     };
+
+    $scope.deleteLike = function(currentUser, likes, like) {
+      Favorites.delete(currentUser + "@slalom.com", likes, like).then(function(data) {
+        console.log("Jai Shri Ram");
+        console.log(data);
+        if(data == false) { $scope.doRefresh(); }
+      });
+    }
 })
 
-.controller('RestaurantsCtrl', function($scope, $http, $q, $ionicLoading, $ionicPopup, Favorites) {
-
-  restaurants = [];
-  distance = []; 
-
-   $ionicLoading.show({
-      templateUrl: "templates/spinner.html"
-    });
+.controller('RestaurantsCtrl', function($scope, $http, $q, $ionicLoading, $ionicPopup, $state, Favorites) {
 
   //Calculate distance between two coordinates
   function calcDistance(destination){
@@ -40,13 +47,13 @@ angular.module('starter.controllers', [])
     return (google.maps.geometry.spherical.computeDistanceBetween(p1, p2) / 1000 * 0.621371).toFixed(2);
   }
 
+  function initialize() { 
+    $ionicLoading.show({
+      templateUrl: "templates/spinner.html"
+    });
 
-  //Get current location
-  //$scope.$on('hasina', function(response) {
-    //console.log("Now I am ready");
-  navigator.geolocation.getCurrentPosition(function(position) {
-    // $scope.$apply(function() {
-
+    //Get current location
+    navigator.geolocation.getCurrentPosition(function(position) {
       $scope.position = position.coords;
       console.log("Position:");
       console.log(position.coords.longitude);
@@ -68,9 +75,7 @@ angular.module('starter.controllers', [])
       service.nearbySearch(request, callback);
 
       function callback(results, status, pagination) {
-        console.log("Here!");
           if (status != google.maps.places.PlacesServiceStatus.OK) {
-            console.log("NOO");
             console.log(status);
             return;
           }
@@ -90,12 +95,30 @@ angular.module('starter.controllers', [])
             pagination.nextPage();
           }
         }
-      // });
-    }, function(error) {
-      console.log("error");
-      console.log(JSON.stringify(error));
-  });
-//})
+
+        //Google Autocomplete
+        var geolocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        var input = (document.getElementById('searchText'));
+        var circle = new google.maps.Circle({center: geolocation, radius: position.coords.accuracy});
+        var autocomplete = new google.maps.places.Autocomplete(input);
+        autocomplete.setBounds(circle.getBounds());
+        autocomplete.bindTo('bounds', map);
+        google.maps.event.addListener(autocomplete, 'place_changed', function() {
+          var place = autocomplete.getPlace();
+          $scope.$apply(function() {
+            $scope.restaurants.unshift(place);
+            $scope.distance.unshift(calcDistance(place.geometry.location) + " miles away");
+          })
+        });
+      }, function(error) {
+        console.log("error");
+        console.log(JSON.stringify(error));
+      });
+  }
+
+  restaurants = [];
+  distance = []; 
+  initialize();
 
   $scope.choose = function(restaurant) {
     Favorites.choose(restaurant);
@@ -104,6 +127,42 @@ angular.module('starter.controllers', [])
      	templateUrl: 'templates/like-confirmation.html'
      });
   }
+
+  $scope.hide = function(restaurant) {
+    var index = $scope.restaurants.indexOf(restaurant);
+    if(index > -1) {
+        $scope.restaurants.splice(index,1);
+        $scope.distance.splice(index,1);
+    }
+  }
+
+  $scope.clearSearchText = function() {
+    document.getElementById('searchText').value = "";
+    $scope.searchText="";
+    document.getElementById('searchText').blur();
+  }
+
+  $scope.closeKeyboard = function() {
+    $scope.clearSearchText();
+    window.cordova.plugins.Keyboard.close();
+  }
+
+  $scope.disableTap = function() {
+    container = document.getElementsByClassName('pac-container');
+    angular.element(container).attr('data-tap-disabled', 'true');
+    angular.element(container).on("click", function(){
+        document.getElementById('searchText').blur();
+    });
+  }  
+
+  $scope.doRefresh = function() {
+    $scope.restaurants = [];
+    $scope.distance = [];
+    restaurants = [];
+    distance = []; 
+    initialize();
+    $scope.$broadcast('scroll.refreshComplete');
+  };
 })
 
 .controller('RestaurantDetailCtrl', function($scope, $stateParams, $http, $q, $ionicModal, $ionicSlideBoxDelegate) {
@@ -112,14 +171,19 @@ angular.module('starter.controllers', [])
   var request = {
     placeId: $stateParams.restaurantId
   };
+  console.log("Id is: ");
+  console.log($stateParams.restaurantId);
   map = new google.maps.Map(document.getElementById('map'));
   service = new google.maps.places.PlacesService(map);
   service.getDetails(request, callback);
   photos = [];
 
   function callback(place, status) {
+    console.log("Status is: ");
+    console.log(status);
     if (status == google.maps.places.PlacesServiceStatus.OK) {
       $scope.restaurant = place;
+      console.log(place);
       for(i=0; i<place.photos.length; i++) {
         src = place.photos[i].getUrl({'maxWidth': 400, 'maxHeight': 400});
         msg = "Image " + (i+1) + "/" + place.photos.length;
@@ -191,18 +255,15 @@ angular.module('starter.controllers', [])
     $.ajax({
       type: 'GET',
       //url: LoginEndpoint.url + "/s/GetUserPhoto?email=" + $scope.data.username + "&size=HR64x64",
-      //url: "https://" + $scope.data.username + ":" + $scope.data.password + "@localhost:8100/login/s/GetUserPhoto?email=" + $scope.data.username + "&size=HR64x64",
-      //url: "https://asa:asas@localhost:8100/login/s/GetUserPhoto?email=" + $scope.data.username + "&size=HR64x64",
       url: 'https://outlook.office365.com/EWS/Exchange.asmx/s/GetUserPhoto?email=' + $scope.data.username + '&size=HR64x64',
       data: {},
       beforeSend: function(xhr) {
         xhr.setRequestHeader('Authorization', 'Basic ' + window.btoa(unescape(encodeURIComponent($scope.data.username + ':' + $scope.data.password))));
-        //xhr.setRequestHeader('www-authenticate', 'FormBased');
       },
       success: function (data) {
-        console.log(data);
       	  Favorites.saveCurrentSessionInfo($scope.data, data);
           $state.go('tab.restaurants');
+          $scope.data = {};
       },
       error: function (xhr, err, abc) {
       	console.log("error");
@@ -211,7 +272,6 @@ angular.module('starter.controllers', [])
                     title: 'Login Failed',
                     templateUrl: 'templates/login-error.html'
                 });
-    	//$state.go('tab.dash');
         }
         else
           $state.go('tab.restaurants');
@@ -220,8 +280,21 @@ angular.module('starter.controllers', [])
   }
 })
 
-.controller('AccountCtrl', function($scope) {
-  $scope.settings = {
-    enableFriends: true
-  };
+.controller('SettingsCtrl', function($scope, $ionicPopup, $state) {
+  $scope.confirmLogout = function() {
+    $ionicPopup.show({
+        title: "Are you sure you?",
+        scope: $scope,
+        buttons: [
+          { text: 'Cancel', onTap: function(e) { return true; } },
+          { text: 'Log out', type: 'button-assertive', onTap: function(e) { $state.go('login'); }},
+        ]
+      }).then(function(res) {
+        console.log('Tapped!', res);
+      }, function(err) {
+        console.log('Err:', err);
+      }, function(popup) {
+        savedPopup = popup;
+      });  
+    }  
 });

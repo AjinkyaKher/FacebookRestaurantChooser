@@ -13,15 +13,10 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
 
 .run(function($ionicPlatform, $rootScope) {
   $ionicPlatform.ready(function() {
-     //var db = window.sqlitePlugin.openDatabase({name: "my.db"});
-    //$rootScope.$broadcast('hasina', 'ama');
-    // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-    // for form inputs)
     if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
       cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
     }
     if (window.StatusBar) {
-      // org.apache.cordova.statusbar required
       StatusBar.styleLightContent();
     }
   });
@@ -38,7 +33,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
 
           // run this function before making requests
           'request': function(config) {
-            console.log("Here");
+            //console.log("Here");
             if (config.method === 'GET') {
               // the request looks good, so return the config
               return config;
@@ -59,7 +54,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
           }
 
         };
-
         return service;
 
       }
@@ -114,6 +108,15 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
         'tab-favorites': {
           templateUrl: 'templates/tab-favorites.html',
           controller: 'FavoritesCtrl'
+        }
+      }
+    })
+    .state('tab.settings', {
+      url: '/settings',
+      views: {
+        'tab-settings': {
+          templateUrl: 'templates/tab-settings.html',
+          controller: 'SettingsCtrl'
         }
       }
     });

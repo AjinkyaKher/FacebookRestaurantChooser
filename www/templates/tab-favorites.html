@@ -1,7 +1,7 @@
  <ion-view view-title="Favorites">
   <ion-content>
   <ion-refresher
-    pulling-text="Pull to refresh..."
+    pulling-text="Pull to refresh"
     on-refresh="doRefresh()">
   </ion-refresher>
     <ion-list>
@@ -9,7 +9,10 @@
       <img ng-src="{{favorite.photo}}">
       <p>{{favorite.name}}</p>
       <div class="list list-inset">
-        <div class="item ion-ios-checkmark" ng-repeat="like in favorite.likes"> {{like}} </div>
+        <div class="item ion-ios-checkmark" ng-repeat="like in favorite.likes"> 
+          {{like}} 
+          <button class="input-button button button-icon ion-ios-close" ng-if="favorite.name==currentUser" ng-click="deleteLike(currentUser, favorite.likes, like)">
+        </div>
       </div>
       </ion-item>
     </ion-list>

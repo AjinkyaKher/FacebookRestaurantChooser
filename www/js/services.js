@@ -2,8 +2,8 @@ angular.module('starter.services', [])
 
 .factory('Favorites', function($q) {
 
-  var userData = {};
   //Initialize db
+  var userData = {};
   var db = new PouchDB('restaurants', {adapter: 'websql'});
   var remoteCouch = "https://ajinkya.iriscouch.com/restaurants";
 
@@ -53,6 +53,37 @@ angular.module('starter.services', [])
         })
       });
     },
+    delete: function(user, likes, dislikedRestaurant) {
+      var deferred = $q.defer();
+      var index = likes.indexOf(dislikedRestaurant);
+      if(index > -1) {
+        likes.splice(index, 1);
+
+        //delete doc
+        if(likes.length == 0) {
+          db.get(user).then(function(doc) { 
+            return db.remove(doc);}).then(function (result) {
+            console.log("doc deleted");
+            console.log(result); 
+            deferred.resolve(false);
+          }).catch(function (err) {
+            console.log(err);
+          });
+        }
+        //update doc
+        else {
+          var query = db.get(userData.data.username).then(function(doc) { 
+            return db.put({_id:userData.data.username, likes:likes.toString(), _rev:doc._rev}); 
+          });
+          query.then(function(resp) { 
+            console.log("doc updated after deleting a like");
+            console.log(resp);
+            deferred.resolve(true); 
+          });
+        }
+      }
+      return deferred.promise;
+    }, 
     get: function() {
       var deferred = $q.defer();
       //Return all the docs
@@ -63,8 +94,11 @@ angular.module('starter.services', [])
         name = doc.rows[i].doc._id.split("@")[0];
         likes = doc.rows[i].doc.likes;
         photo = "https://outlook.office365.com/EWS/Exchange.asmx/s/GetUserPhoto?email=" + doc.rows[i].doc._id + "&size=HR64x64";
-        favorites.push({name: name, likes: likes, photo: photo});
-
+        currentUser = false;
+        if(doc.rows[i].doc._id == userData.data.username.toLowerCase())
+          currentUser = true;
+        favorites.push({name: name, likes: likes, photo: photo, currentUser: currentUser});
+        //Allow images to load
         $.ajax({
             type: "GET",
             url: "https://outlook.office365.com/EWS/Exchange.asmx/s/GetUserPhoto?email=" + doc.rows[i].doc._id + "&size=HR64x64",

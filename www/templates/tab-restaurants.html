@@ -1,16 +1,40 @@
 <ion-view view-title="Restaurants">
-  <ion-content>
-    <ion-list> 
-      <ion-item class="item-avatar item-icon-right item-label-right" ng-repeat="restaurant in restaurants" type="item-text-wrap" href="#/tab/restaurants/{{restaurant.place_id}}">
-        <img ng-src="{{restaurant.icon}}">
-        <h2>{{restaurant.name}}</h2>
-        <p ng-bind="distance[$index]"> </p> 
-        <i class="icon ion-chevron-right icon-accessory"></i>
-        <ion-option-button class="button-positive" ng-click="choose(restaurant)">
-          Choose
-        </ion-option-button>
-      </ion-item>
-    </ion-list>
-    <div id="map" style="width:0px;height:0px;"></div>
-  </ion-content>
+
+ <ion-header-bar class="bar-light bar-subheader" style="height: auto">
+  <div class="list list-inset">
+  <div class="item item-input">
+    <label class="item-input-wrapper">
+      <i class="icon ion-search placeholder-icon"></i>
+      <input id="searchText" type="search" ng-model="searchText" ng-autocomplete placeholder="Search a restaurant" ng-focus="disableTap()">
+  </label>
+    <button class="input-button-inside button button-icon ion-ios-close" ng-if="searchText.length" ng-click="clearSearchText()">
+    <button class="input-button button-clear" ng-click="closeKeyboard()">Cancel</button>
+    </div>    
+  </div>
+ </ion-header-bar>
+
+ <ion-content class="has-header has-subheader padding morePadding">
+ <ion-refresher
+    pulling-text="Pull to refresh"
+    on-refresh="doRefresh()">
+  </ion-refresher>
+ <div class="list list-inset">
+  <ion-list> 
+    <ion-item class="item-avatar item-icon-right item-label-right" ng-repeat="restaurant in restaurants" type="item-text-wrap" href="#/tab/restaurants/{{restaurant.place_id}}">
+    <img ng-src="{{restaurant.icon}}">
+    <h2>{{restaurant.name}}</h2>
+    <p ng-bind="distance[$index]"> </p> 
+    <i class="icon ion-chevron-right icon-accessory"></i>
+    <ion-option-button class="button-positive" ng-click="choose(restaurant)">
+      Choose
+    </ion-option-button>
+    <ion-option-button class="button-assertive" ng-click="hide(restaurant)">
+      Hide
+    </ion-option-button>
+    </ion-item>
+  </ion-list>
+  </div>
+  <div id="map" style="width:0px;height:0px;"></div>
+</ion-content>
 </ion-view>
+

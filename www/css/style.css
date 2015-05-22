@@ -46,3 +46,23 @@ p.info {
     opacity: 0;
   }
 }
+
+.button.button-icon.input-button {
+  position: absolute;
+  right: 0px;
+  top: 5px;
+  color: #bbb;
+}
+
+.button.button-icon.input-button-inside {
+  position: absolute;
+  right: 55px;
+  top: 8px;
+  color: #bbb;
+}
+
+.morePadding {
+  padding-top: 20px;
+  padding-left: 15px;
+  padding-right: 15px
+ }
